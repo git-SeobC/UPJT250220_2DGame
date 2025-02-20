@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Resources;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -118,6 +119,31 @@ public class PlayerController : MonoBehaviour
     {
         if (collision.gameObject.tag == "Goal") Goal();
         else if (collision.gameObject.tag == "Dead") GameoOver();
+        else if (collision.gameObject.tag == "Item_Blue") // 속도 증가
+        {
+            StartCoroutine(SpeedBoost());
+            Destroy(collision.gameObject);
+        }
+        else if (collision.gameObject.tag == "Item_Green")
+        {
+
+        }
+        else if (collision.gameObject.tag == "Item_Red")
+        {
+
+        }
+        else if (collision.gameObject.tag == "Item_White")
+        {
+
+        }
+    }
+
+    IEnumerator SpeedBoost()
+    {
+        float normalSpeed = speed;
+        speed = speed * 1.5f;
+        yield return new WaitForSeconds(5f);
+        speed = normalSpeed;
     }
 
     public void GameoOver()
