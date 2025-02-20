@@ -23,7 +23,7 @@ public class PlayerController : MonoBehaviour
     Rigidbody2D rbody;
     float axisH = 0.0f;
     public float speed = 3.0f;
-    public float jump = 9.0f;
+    public float jump = 7.0f;
     public LayerMask groundLayer;
     bool goJump = false;
     bool onGround = false;
@@ -35,6 +35,8 @@ public class PlayerController : MonoBehaviour
         rbody = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         state = "playing";
+        normalSpeed = speed;
+        normalJump = jump;
     }
 
     void Update()
@@ -115,35 +117,81 @@ public class PlayerController : MonoBehaviour
         goJump = true;
     }
 
+    public enum ITEM_TYPE
+    {
+        Blue,
+        Green,
+        Red,
+        White
+    }
+
+    private Coroutine itemCoroutine;
+    private float normalSpeed;
+    private float normalJump;
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.gameObject.tag == "Goal") Goal();
         else if (collision.gameObject.tag == "Dead") GameoOver();
-        else if (collision.gameObject.tag == "Item_Blue") // 속도 증가
+        else if (collision.gameObject.tag == "Item_Blue") // 아이템 동시에 여러개 먹으면 문제 있음
         {
-            StartCoroutine(SpeedBoost());
+            if (itemCoroutine != null) StopItemCoroutine();
+            itemCoroutine = StartCoroutine(GetItemPower(ITEM_TYPE.Blue));
             Destroy(collision.gameObject);
         }
         else if (collision.gameObject.tag == "Item_Green")
         {
-
+            if (itemCoroutine != null) StopItemCoroutine();
+            itemCoroutine = StartCoroutine(GetItemPower(ITEM_TYPE.Green));
+            Destroy(collision.gameObject);
         }
         else if (collision.gameObject.tag == "Item_Red")
         {
-
+            if (itemCoroutine != null) StopItemCoroutine();
+            itemCoroutine = StartCoroutine(GetItemPower(ITEM_TYPE.Red));
+            Destroy(collision.gameObject);
         }
         else if (collision.gameObject.tag == "Item_White")
         {
-
+            if (itemCoroutine != null) StopItemCoroutine();
+            itemCoroutine = StartCoroutine(GetItemPower(ITEM_TYPE.White));
+            Destroy(collision.gameObject);
         }
     }
 
-    IEnumerator SpeedBoost()
+    private void StopItemCoroutine()
     {
-        float normalSpeed = speed;
-        speed = speed * 1.5f;
-        yield return new WaitForSeconds(5f);
+        StopCoroutine(itemCoroutine);
         speed = normalSpeed;
+        jump = normalJump; ;
+    }
+
+    IEnumerator GetItemPower(ITEM_TYPE item)
+    {
+        switch (item)
+        {
+            case ITEM_TYPE.Blue:
+                speed = speed * 1.5f;
+                yield return new WaitForSeconds(10);
+                StopItemCoroutine();
+                break;
+            case ITEM_TYPE.Green:
+                jump = jump * 1.5f;
+                yield return new WaitForSeconds(10);
+                StopItemCoroutine();
+                break;
+            case ITEM_TYPE.Red:
+                speed = speed * 0.5f;
+                yield return new WaitForSeconds(10);
+                StopItemCoroutine();
+                break;
+            case ITEM_TYPE.White:
+                speed = speed * 1.5f;
+                jump = jump * 1.5f;
+                yield return new WaitForSeconds(10);
+                StopItemCoroutine();
+                break;
+        }
     }
 
     public void GameoOver()
@@ -155,7 +203,7 @@ public class PlayerController : MonoBehaviour
         GetComponent<CapsuleCollider2D>().enabled = false;  // 현재 플레이어가 가지고 있는 콜라이더를 비활성화 (충돌 발생 X)
         rbody.AddForce(new Vector2(0, 5), ForceMode2D.Impulse); // 위로 살짝 뛰어오르는 연출을 위함
     }
-    
+
     private void GameStop()
     {
         //var rbody = GetComponent<Rigidbody2D>();
